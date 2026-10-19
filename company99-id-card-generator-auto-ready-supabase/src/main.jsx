@@ -7,11 +7,17 @@ import { IdCard, Users, Download, Printer, Search, LogIn, LogOut, Upload, CheckC
 import './styles.css'
 
 // Automatically use Supabase when valid environment variables are provided; otherwise run in local demo mode.
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+// Normalize the project URL in case Vercel's environment variable was pasted with
+// an API path such as /auth/v1 or /rest/v1. Supabase expects the project root URL.
+const RAW_SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL || '').trim()
+const SUPABASE_URL = RAW_SUPABASE_URL
+  .replace(/\/+$/, '')
+  .replace(/\/(auth|rest|storage|functions)\/v1$/i, '')
+const SUPABASE_ANON_KEY = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim()
 const DEMO_MODE = !(SUPABASE_URL && SUPABASE_ANON_KEY && !SUPABASE_URL.includes('YOUR-PROJECT') && !SUPABASE_ANON_KEY.includes('YOUR_SUPABASE'))
-const supabase = !DEMO_MODE && SUPABASE_URL && SUPABASE_ANON_KEY && !SUPABASE_URL.includes('YOUR-PROJECT')
-  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null
+const supabase = !DEMO_MODE && /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(SUPABASE_URL)
+  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null
 
 const BRANDS = [
   { id: 'PUZZLE', name: 'PUZZLE', logo: '/logos/puzzle.png', color: '#1d4ed8', desc: 'PUZZLE' },
